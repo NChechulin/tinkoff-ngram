@@ -12,12 +12,6 @@ repos:
       - id: mixed-line-ending
   - repo: local
     hooks:
-      - id: requirements
-        name: requirements
-        description: Export production requirements
-        entry: poetry export -o requirements.txt
-        language: python
-        pass_filenames: false
       - id: dev-requirements
         name: dev-requirements
         description: Export production and development requirements
