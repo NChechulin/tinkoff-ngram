@@ -72,3 +72,55 @@ class TextFile:
     def __split_into_sentences(self, text: str) -> list[str]:
         text = " ".join(text.splitlines())
         return text.split(".")
+
+
+@dataclass
+class DataLoader:
+    """
+    Loads and parses all data in a given directory.
+    """
+
+    data_dir: Path
+    parsed_files: list[TextFile] = field(default_factory=list)
+
+    def __post_init__(self):
+        self.parsed_files = list(
+            map(
+                lambda path: TextFile(input_file=path),
+                self.__get_all_file_paths(),
+            )
+        )
+
+    def __get_files_recursive(self, path: Path) -> list[Path]:
+        """
+        Recursively traverses a given directory and saves all text files.
+
+        Parameters
+        ----------
+        path : Path
+            Current directory
+
+        Returns
+        -------
+        list[Path]
+            All text files
+        """
+        result: list[Path] = []
+        for child in path.iterdir():
+            if child.is_dir():
+                result += self.__get_files_recursive(child)
+            else:
+                if child.suffix == ".txt":
+                    result.append(child)
+        return result
+
+    def __get_all_file_paths(self) -> list[Path]:
+        """
+        Returns all text file paths in `data_dir`.
+
+        Returns
+        -------
+        list[Path]
+            Paths to text files with data inside.
+        """
+        return self.__get_files_recursive(self.data_dir)
