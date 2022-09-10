@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from tqdm import tqdm
+
 VALID_CHARACTERS = "йцукенгшщзхъфывапролджэячсмитьбю -"
 
 
@@ -87,10 +89,12 @@ class DataLoader:
     parsed_files: list[TextFile] = field(default_factory=list)
 
     def __post_init__(self):
+        print("Parsing files...")
+
         self.parsed_files = list(
             map(
                 lambda path: TextFile(input_file=path),
-                self.__get_all_file_paths(),
+                tqdm(self.__get_all_file_paths()),
             )
         )
 
