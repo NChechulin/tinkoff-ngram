@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Tuple
+from typing import Optional, Tuple
 
+from data_loader import Sentence
 from numpy.random import choice
 
 
@@ -30,3 +31,41 @@ class NGram:
             words,
             p=probabilities,
         )  # type: ignore
+
+    def position_in_sentence(self, sentence: Sentence) -> Optional[int]:
+        """
+        Returns position of the first word in the sentence or None if
+        not present.
+
+        Parameters
+        ----------
+        sentence : Sentence
+            Sentence to look for NGram in.
+
+        Returns
+        -------
+        Optional[int]
+            Index of the first word or None if NGram is not present.
+        """
+
+        def __check_at_position(pos: int) -> bool:
+            for i in range(pos, pos + self.size):
+                if sentence.words[i] != self.words[i - pos]:
+                    return False
+            return True
+
+        for i in range(len(sentence) - self.size + 1):
+            if __check_at_position(i):
+                return i
+        return None
+
+    @property
+    def size(self) -> int:
+        """
+        Returns the size of an N-Gram (N)
+
+        Returns
+        -------
+        int
+        """
+        return len(self.words)
