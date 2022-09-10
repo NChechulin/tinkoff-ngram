@@ -44,6 +44,9 @@ class Sentence:
     def __len__(self) -> int:
         return len(self.words)
 
+    def __hash__(self) -> int:
+        return hash(" ".join(self.words))
+
 
 @dataclass
 class TextFile:

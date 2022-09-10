@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, Tuple
+from typing import Dict, Optional, Set
 
 from data_loader import Sentence
 from numpy.random import choice
@@ -8,7 +8,7 @@ from numpy.random import choice
 @dataclass
 class NGram:
     words: list[str]
-    next_words: list[Tuple[str, int]] = field(default_factory=list)
+    next_words: Dict[str, int] = field(default_factory=dict)
 
     def randomly_choose_word(self) -> str:
         """
@@ -21,14 +21,14 @@ class NGram:
         str
             Random next word
         """
-        words = list(map(lambda tup: tup[0], self.next_words))
-        counts = list(map(lambda tup: tup[1], self.next_words))
-        total = sum(counts)
+        words = self.next_words.keys()
+        counts = self.next_words.values()
+        total: int = sum(counts)
 
-        probabilities = list(map(lambda count: count / total, counts))
+        probabilities: list[float] = list(map(lambda count: count / total, counts))
 
         return choice(
-            words,
+            list(words),
             p=probabilities,
         )  # type: ignore
 
@@ -59,6 +59,14 @@ class NGram:
                 return i
         return None
 
+    def add_next_word(self, sentence: Sentence, first_word_pos: int) -> None:
+        next_word = sentence.words[first_word_pos + self.size]
+        # Create key if does not exist
+        if self.next_words.get(next_word) is None:
+            self.next_words[next_word] = 0
+
+        self.next_words[next_word] += 1
+
     @property
     def size(self) -> int:
         """
@@ -69,3 +77,22 @@ class NGram:
         int
         """
         return len(self.words)
+
+    def __hash__(self) -> int:
+        """
+        Since we claim NGrams are equal if words are equal, we have
+        to write a custom hash function which does not care about
+        next_words.
+        """
+        return hash(" ".join(self.words))
+
+    def __eq__(self, __o: object) -> bool:
+        return hash(self) == hash(__o)
+
+    def __iadd__(self, __o: "NGram") -> "NGram":
+        for next_word in __o.next_words:
+            if not self.next_words.get(next_word):
+                self.next_words[next_word] = 0
+
+            self.next_words[next_word] += __o.next_words[next_word]
+        return self
