@@ -1,8 +1,10 @@
 from dataclasses import dataclass, field
-from typing import Dict, Optional, Set
+from pathlib import Path
+from typing import Dict, Optional
 
-from data_loader import Sentence
+from data_loader import DataLoader, Sentence
 from numpy.random import choice
+from tqdm import tqdm
 
 
 @dataclass
@@ -96,3 +98,100 @@ class NGram:
 
             self.next_words[next_word] += __o.next_words[next_word]
         return self
+
+
+@dataclass
+class NGramConstructor:
+    ngrams: list[NGram] = field(default_factory=list)
+    __all_sentences: list[Sentence] = field(default_factory=list)
+
+    def __init__(self, data_dir: Path, size: int) -> None:
+        self.ngrams = list()
+        self.__all_sentences = list()
+
+        dl = DataLoader(data_dir)
+
+        for file in dl.parsed_files:
+            self.__all_sentences += file.sentences
+
+        self.__construct_ngrams(size)
+        hashed = self.__construct_ngrams_hash_dict()
+        self.__filter_duplicate_ngrams(hashed)
+
+    def __construct_ngrams(self, size: int) -> None:
+        """
+        Constructs NGrams of a given size from text files.
+
+        Parameters
+        ----------
+        size : int
+            _description_
+        """
+        print("Constructing NGrams...")
+
+        for sent in tqdm(self.__all_sentences):
+            for i in range(len(sent) - size + 1):
+                words = sent.words[i : i + size]
+                ng = NGram(words=words)
+                if i + size < len(sent):
+                    ng.add_next_word(sent, i)
+                self.ngrams.append(ng)
+
+    def __construct_ngrams_hash_dict(self) -> Dict[int, list[NGram]]:
+        """
+        Constructs a dict where key is hash and value is all the NGrams which
+        have that hash.
+        This is needed because multiple NGrams contain the same words,
+        but have different `next_words`.
+        Essentially, they are the same and have to be merged.
+
+        Returns
+        -------
+        Dict[int, list[NGram]]
+            A dictionary containing hash and all NGrams with that hash.
+        """
+        result: Dict[int, list[NGram]] = dict()
+
+        for ngram in self.ngrams:
+            ng_hash = hash(ngram)
+            if ng_hash not in result.keys():
+                result[ng_hash] = list()
+
+            result[ng_hash].append(ngram)
+
+        return result
+
+    def __filter_duplicate_ngrams(self, hashed: Dict[int, list[NGram]]) -> None:
+        """
+        Merges duplicate ngrams into one and deletes all the repeating ones.
+
+        Parameters
+        ----------
+        hashed : Dict[int, list[NGram]]
+            Dict where key is hash and value is list of equivalent NGrams.
+        """
+        print("Cleaning up NGrams...")
+
+        self.ngrams = list(
+            map(
+                lambda ngrams: self.__merge_equal_ngrams(ngrams),
+                tqdm(hashed.values()),
+            )
+        )
+
+    def __merge_equal_ngrams(self, ngrams: list[NGram]) -> NGram:
+        """
+        Takes a list of NGrams constructed from the same words and merges them.
+
+        Parameters
+        ----------
+        ngrams : list[NGram]
+
+        Returns
+        -------
+        NGram
+            One merged NGram
+        """
+        for i in range(1, len(ngrams)):
+            ngrams[0] += ngrams[i]
+        return ngrams[0]
