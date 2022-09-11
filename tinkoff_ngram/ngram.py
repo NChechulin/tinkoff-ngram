@@ -102,6 +102,10 @@ class NGram:
 
 @dataclass
 class NGramConstructor:
+    """
+    Constructs a list of NGrams from data directory.
+    """
+
     ngrams: list[NGram] = field(default_factory=list)
     __all_sentences: list[Sentence] = field(default_factory=list)
 
