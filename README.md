@@ -1,5 +1,10 @@
 # Tinkoff N-gram
 
+## Used external libraries
+
+- `numpy` - for "weighted" random (`numpy.choice` allows to pass probability of taking each item)
+- `tqdm` - for pretty progress bars
+
 ## Sources of data
 
 - [Russian Literature](https://www.kaggle.com/datasets/d0rj3228/russian-literature) on Kaggle
