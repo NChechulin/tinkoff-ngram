@@ -280,3 +280,17 @@ class NGramManager:
             current_ngram: Optional[NGram] = self._ngrams.get(tuple(next_ngram_words))
 
         return result
+
+    @property
+    def size(self) -> int:
+        """
+        Returns
+        -------
+        int
+            Total number of NGrams
+        """
+        return len(self._ngrams)
+
+    @property
+    def ngram_size(self) -> int:
+        return list(self._ngrams.values())[0].size
