@@ -140,7 +140,7 @@ class NGramConstructor:
                 ng = NGram(words=words)
                 if i + size < len(sent):
                     ng.add_next_word(sent, i)
-                self.ngrams.append(ng)
+                    self.ngrams.append(ng)
 
     def __construct_ngrams_hash_dict(self) -> Dict[int, list[NGram]]:
         """
@@ -280,6 +280,11 @@ class NGramManager:
             current_ngram: Optional[NGram] = self._ngrams.get(tuple(next_ngram_words))
 
         return result
+
+    def generate_with_random_start(self, n: int) -> Tuple[list[str], list[str]]:
+        start_ngram: NGram = choice(list(self._ngrams.values()))  # type: ignore
+        cont = self.generate_n_next_words(start_ngram.words, n)
+        return (start_ngram.words, cont)
 
     @property
     def size(self) -> int:
