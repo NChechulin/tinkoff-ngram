@@ -1,3 +1,4 @@
+import pickle
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Optional, Tuple
@@ -214,6 +215,36 @@ class NGramManager:
         self._ngrams = dict()
         for ngram in ngrams:
             self._ngrams[tuple(ngram.words)] = ngram
+
+    @staticmethod
+    def from_pickle(pickle_file: Path) -> "NGramManager":
+        """
+        Loads pre-trained NGramManager from file.
+
+        Parameters
+        ----------
+        pickle_file : Path
+            Path to take data from.
+
+        Returns
+        -------
+        NGramManager
+        """
+        with open(pickle_file, "rb") as fh:
+            res = pickle.load(fh)  # type: ignore
+        return res
+
+    def save_to_file(self, pickle_file: Path) -> None:
+        """
+        Saves pre-trained NGramManager to file.
+
+        Parameters
+        ----------
+        pickle_file : Path
+            Path to write data in.
+        """
+        with open(pickle_file, "wb+") as fh:
+            pickle.dump(self, fh, protocol=pickle.HIGHEST_PROTOCOL)  # type: ignore
 
     def generate_n_next_words(self, start: list[str], n: int) -> list[str]:
         """
