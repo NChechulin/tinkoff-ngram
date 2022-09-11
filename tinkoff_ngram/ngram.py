@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 from data_loader import DataLoader, Sentence
 from numpy.random import choice
@@ -199,3 +199,53 @@ class NGramConstructor:
         for i in range(1, len(ngrams)):
             ngrams[0] += ngrams[i]
         return ngrams[0]
+
+
+@dataclass
+class NGramManager:
+    """
+    A smart storage for NGrams.
+    """
+
+    _ngrams: Dict[Tuple[str], NGram]
+
+    def __init__(self, ngrams: list[NGram]) -> None:
+        # Construct a storage for faster search
+        self._ngrams = dict()
+        for ngram in ngrams:
+            self._ngrams[tuple(ngram.words)] = ngram
+
+    def generate_n_next_words(self, start: list[str], n: int) -> list[str]:
+        """
+        Generates N words which follow the start words.
+        If some NGram does not exist, returns less than N words.
+
+        Parameters
+        ----------
+        start : list[str]
+            Start of the sentence.
+        n : int
+            Number of words to add.
+
+        Returns
+        -------
+        list[str]
+            The remaining <=n words.
+        """
+        result: list[str] = list()
+
+        # Reuse some Sentence code to clean up the start words
+        clean_start = tuple(Sentence(" ".join(start)).words)
+        current_ngram: Optional[NGram] = self._ngrams.get(clean_start)
+
+        for _ in range(n):
+            if current_ngram is None:
+                break
+
+            next_word = current_ngram.randomly_choose_word()
+            result.append(next_word)
+
+            next_ngram_words = current_ngram.words[1:] + [next_word]
+            current_ngram: Optional[NGram] = self._ngrams.get(tuple(next_ngram_words))
+
+        return result
