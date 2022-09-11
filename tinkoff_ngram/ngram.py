@@ -3,9 +3,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
-from data_loader import DataLoader, Sentence
 from numpy.random import choice
 from tqdm import tqdm
+
+from tinkoff_ngram.data_loader import DataLoader, Sentence
 
 
 @dataclass
